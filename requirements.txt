@@ -1,0 +1,7 @@
+opencv-python
+pywin32
+psutil
+pyyaml
+pystray
+Pillow
+keyboard

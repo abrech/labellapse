@@ -1,0 +1,15 @@
+interval_minutes: 1
+output_dir: "./output"
+camera_index: 0
+jpeg_quality: 85
+labels:
+  - work
+  - uni
+  - gaming
+  - unknown
+
+hotkeys:
+  work: "ctrl+alt+w"
+  uni: "ctrl+alt+u"
+  gaming: "ctrl+alt+g"
+  clear: "ctrl+alt+0"

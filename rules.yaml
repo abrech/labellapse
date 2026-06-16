@@ -1,0 +1,37 @@
+default: unknown
+
+# First matching label wins (top to bottom).
+priority:
+  - work
+  - uni
+  - gaming
+
+labels:
+  work:
+    processes:
+      - Code.exe
+      - Cursor.exe
+      - slack.exe
+      - Teams.exe
+      - OUTLOOK.EXE
+    titles:
+      - GitHub
+      - Jira
+      - Outlook
+  uni:
+    processes: []
+    titles:
+      - Canvas
+      - Moodle
+      - Coursera
+      - Zoom
+      - edX
+      - Blackboard
+  gaming:
+    processes:
+      - steam.exe
+    titles:
+      - Steam
+      - Counter-Strike
+      - Elden Ring
+      - Twitch

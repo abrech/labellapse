@@ -1,0 +1,6 @@
+output/
+state.json
+__pycache__/
+*.pyc
+.venv/
+venv/
