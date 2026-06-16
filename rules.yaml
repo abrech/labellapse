@@ -57,6 +57,8 @@ hosts:
           - Cursor.exe
         titles:
           - GitHub
+          - homeassistant.local
+          - Home Assistant
       work:
         processes:
           - slack.exe

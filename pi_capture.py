@@ -33,15 +33,28 @@ def _sleep_until_next_interval(interval_seconds: float) -> None:
     time.sleep(wait)
 
 
-def _capture_once(camera: WebcamCapture, config: dict, output_dir: Path) -> None:
+def _capture_once(
+    camera_index: int,
+    config: dict,
+    output_dir: Path,
+    capture_retries: int,
+) -> None:
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H%M%S")
     filename = f"{time_str}.jpg"
     image_path = output_dir / date_str / filename
 
-    frame = camera.capture_frame()
-    camera.save_jpeg(frame, image_path, quality=config.get("jpeg_quality", 85))
+    # Open the camera per capture — USB webcams on Pi often timeout if left
+    # open across long idle intervals between timelapse shots.
+    camera = WebcamCapture(camera_index=camera_index)
+    try:
+        camera.open()
+        frame = camera.capture_frame(retries=capture_retries)
+        camera.save_jpeg(frame, image_path, quality=config.get("jpeg_quality", 85))
+    finally:
+        camera.close()
+
     logger.info("Captured %s/%s", date_str, filename)
 
 
@@ -56,29 +69,26 @@ def main() -> int:
     interval_seconds = interval_minutes * 60
     output_dir = BASE_DIR / config.get("output_dir", "./images")
     camera_index = config.get("camera_index", 0)
+    capture_retries = config.get("capture_retries", 3)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    camera = WebcamCapture(camera_index=camera_index)
-    try:
-        camera.open()
-        logger.info(
-            "Pi capture started (interval=%d min, output=%s)",
-            interval_minutes,
-            output_dir,
-        )
+    logger.info(
+        "Pi capture started (interval=%d min, output=%s)",
+        interval_minutes,
+        output_dir,
+    )
 
+    try:
         while True:
             _sleep_until_next_interval(interval_seconds)
             try:
-                _capture_once(camera, config, output_dir)
+                _capture_once(camera_index, config, output_dir, capture_retries)
             except Exception:
                 logger.exception("Capture failed, will retry next interval")
 
     except KeyboardInterrupt:
         logger.info("Pi capture stopped")
-    finally:
-        camera.close()
 
     return 0
 
