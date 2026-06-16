@@ -72,7 +72,7 @@ def _on_clear_label(base_dir: Path, icon: Icon) -> None:
 def _toggle_pause(controller: AppController, icon: Icon | None) -> None:
     controller.set_paused(not controller.is_paused())
     state = "paused" if controller.is_paused() else "resumed"
-    logger.info("Capture %s", state)
+    logger.info("Recording %s", state)
     if icon is not None:
         icon.update_menu()
 
@@ -118,7 +118,7 @@ def _build_menu(
             lambda _: _on_clear_label(base_dir, icon_holder["icon"]),
         ),
         MenuItem(
-            lambda _: "Resume capturing" if controller.is_paused() else "Pause capturing",
+            lambda _: "Resume recording" if controller.is_paused() else "Pause recording",
             lambda _: _toggle_pause(controller, icon_holder["icon"]),
         ),
         MenuItem("Quit", lambda _: _on_quit(controller, icon_holder["icon"])),
@@ -183,7 +183,7 @@ def start_tray(
     icon = Icon(
         "time_label",
         _make_icon_image(),
-        "Desk Activity Timelapse",
+        "Desk Activity Recorder",
         menu=_build_menu(base_dir, labels, controller, icon_holder),
     )
     icon_holder["icon"] = icon

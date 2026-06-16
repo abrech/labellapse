@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import cv2
@@ -14,7 +15,10 @@ class WebcamCapture:
         self._cap: cv2.VideoCapture | None = None
 
     def open(self) -> None:
-        self._cap = cv2.VideoCapture(self._camera_index, cv2.CAP_DSHOW)
+        if sys.platform == "win32":
+            self._cap = cv2.VideoCapture(self._camera_index, cv2.CAP_DSHOW)
+        else:
+            self._cap = cv2.VideoCapture(self._camera_index)
         if not self._cap.isOpened():
             raise RuntimeError(f"Could not open camera at index {self._camera_index}")
 

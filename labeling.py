@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,12 +12,6 @@ import yaml
 from context import ForegroundContext
 
 STATE_FILENAME = "state.json"
-
-
-@dataclass
-class LabelResult:
-    label: str
-    source: str
 
 
 def load_rules(path: Path) -> dict[str, Any]:
@@ -55,6 +48,14 @@ def get_manual_label(base_dir: Path) -> str | None:
     return None
 
 
+def get_manual_set_at(base_dir: Path) -> str | None:
+    state = load_state(base_dir)
+    value = state.get("manual_set_at")
+    if isinstance(value, str) and value:
+        return value
+    return None
+
+
 def set_manual_label(base_dir: Path, label: str) -> None:
     state = load_state(base_dir)
     state["manual_label"] = label
@@ -77,7 +78,7 @@ def _matches_pattern(text: str, patterns: list[str]) -> bool:
     return False
 
 
-def _infer_label(ctx: ForegroundContext, rules: dict[str, Any]) -> str:
+def infer_label(ctx: ForegroundContext, rules: dict[str, Any]) -> str:
     labels: dict[str, dict[str, list[str]]] = rules.get("labels", {})
     priority: list[str] = rules.get("priority", list(labels.keys()))
     default: str = rules.get("default", "unknown")
@@ -101,16 +102,3 @@ def _infer_label(ctx: ForegroundContext, rules: dict[str, Any]) -> str:
                 return label
 
     return default
-
-
-def resolve_label(
-    ctx: ForegroundContext,
-    rules: dict[str, Any],
-    base_dir: Path,
-) -> LabelResult:
-    manual = get_manual_label(base_dir)
-    if manual is not None:
-        return LabelResult(label=manual, source="manual")
-
-    inferred = _infer_label(ctx, rules)
-    return LabelResult(label=inferred, source="inferred")

@@ -1,0 +1,4 @@
+interval_minutes: 15
+output_dir: "./images"
+camera_index: 0
+jpeg_quality: 85
