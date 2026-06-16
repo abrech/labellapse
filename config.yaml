@@ -6,6 +6,7 @@ labels:
   - hobby
   - uni
   - gaming
+  - roochen
   - unknown
 
 hotkeys:
@@ -13,6 +14,7 @@ hotkeys:
   hobby: "ctrl+alt+h"
   uni: "ctrl+alt+u"
   gaming: "ctrl+alt+g"
+  roochen: "ctrl+alt+r"
   clear: "ctrl+alt+0"
 
 merge:

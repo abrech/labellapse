@@ -83,13 +83,14 @@ A tray icon appears. The script samples foreground context every 60 seconds (con
 | `Ctrl+Alt+H` | Set manual label to **hobby** |
 | `Ctrl+Alt+U` | Set manual label to **uni** |
 | `Ctrl+Alt+G` | Set manual label to **gaming** |
+| `Ctrl+Alt+R` | Set manual label to **roochen** |
 | `Ctrl+Alt+0` | Clear manual label |
 
 Hotkeys are configured in [`config.yaml`](config.yaml). The `keyboard` library may require running as administrator if hotkeys do not register.
 
 #### Tray menu
 
-- Pick a label (work / hobby / uni / gaming) — stored separately from auto-inference
+- Pick a label (work / hobby / uni / gaming / roochen) — stored separately from auto-inference
 - **Clear manual label**
 - **Pause recording** — no samples written while paused
 - **Quit**
