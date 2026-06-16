@@ -36,12 +36,8 @@ def load_config(path: Path) -> dict:
         return yaml.safe_load(f)
 
 
-def _resolve_hostname(config: dict) -> str:
-    configured = config.get("hostname")
-    if isinstance(configured, str) and configured.strip():
-        raw = configured.strip()
-    else:
-        raw = socket.gethostname()
+def _resolve_hostname() -> str:
+    raw = socket.gethostname()
     sanitized = re.sub(r"[^\w.-]", "_", raw)
     return sanitized or "unknown"
 
@@ -58,7 +54,7 @@ def _sample_once(
     hostname: str,
 ) -> None:
     ctx = get_foreground_context()
-    label = infer_label(ctx, rules)
+    label = infer_label(ctx, rules, hostname=hostname)
 
     now = datetime.now()
     record: dict = {
@@ -104,7 +100,7 @@ def main() -> int:
 
     interval_seconds = config.get("activity_interval_seconds", 60)
     activity_dir = BASE_DIR / config.get("activity_dir", "./activity")
-    hostname = _resolve_hostname(config)
+    hostname = _resolve_hostname()
     labels: list[str] = config.get("labels", ["work", "uni", "gaming", "unknown"])
     hotkeys: dict[str, str] = config.get("hotkeys", {})
 
@@ -113,7 +109,7 @@ def main() -> int:
 
     try:
         logger.info(
-            "Activity recording started (interval=%ds, host=%s, output=%s)",
+            "Activity recording started (interval=%ds, hostname=%s, output=%s)",
             interval_seconds,
             hostname,
             activity_dir / hostname,

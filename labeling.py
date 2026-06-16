@@ -78,9 +78,12 @@ def _matches_pattern(text: str, patterns: list[str]) -> bool:
     return False
 
 
-def infer_label(ctx: ForegroundContext, rules: dict[str, Any]) -> str:
-    labels: dict[str, dict[str, list[str]]] = rules.get("labels", {})
-    priority: list[str] = rules.get("priority", list(labels.keys()))
+def infer_label(
+    ctx: ForegroundContext,
+    rules: dict[str, Any],
+    hostname: str | None = None,
+) -> str:
+    priority, labels = _rules_for_host(rules, hostname)
     default: str = rules.get("default", "unknown")
 
     process = ctx.process or ""
@@ -102,3 +105,50 @@ def infer_label(ctx: ForegroundContext, rules: dict[str, Any]) -> str:
                 return label
 
     return default
+
+
+def _host_profile_for_hostname(
+    rules: dict[str, Any],
+    hostname: str,
+) -> dict[str, Any] | None:
+    hosts_cfg = rules.get("hosts")
+    if not hosts_cfg:
+        return None
+
+    profiles: list[dict[str, Any]]
+    if isinstance(hosts_cfg, dict):
+        profiles = [
+            {"hostnames": [key], **cfg}
+            for key, cfg in hosts_cfg.items()
+            if isinstance(cfg, dict)
+        ]
+    elif isinstance(hosts_cfg, list):
+        profiles = [p for p in hosts_cfg if isinstance(p, dict)]
+    else:
+        return None
+
+    hostname_lower = hostname.lower()
+    for profile in profiles:
+        names = profile.get("hostnames", [])
+        if any(isinstance(name, str) and name.lower() == hostname_lower for name in names):
+            return profile
+    return None
+
+
+def _rules_for_host(
+    rules: dict[str, Any],
+    hostname: str | None,
+) -> tuple[list[str], dict[str, dict[str, list[str]]]]:
+    base_labels: dict[str, dict[str, list[str]]] = rules.get("labels", {})
+    base_priority: list[str] = rules.get("priority", list(base_labels.keys()))
+
+    if not hostname:
+        return base_priority, base_labels
+
+    host_cfg = _host_profile_for_hostname(rules, hostname)
+    if host_cfg is None:
+        return base_priority, base_labels
+
+    merged_labels = {**base_labels, **host_cfg.get("labels", {})}
+    priority = host_cfg.get("priority", base_priority)
+    return priority, merged_labels

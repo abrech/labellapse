@@ -80,6 +80,7 @@ A tray icon appears. The script samples foreground context every 60 seconds (con
 | Hotkey | Action |
 |--------|--------|
 | `Ctrl+Alt+W` | Set manual label to **work** |
+| `Ctrl+Alt+H` | Set manual label to **hobby** |
 | `Ctrl+Alt+U` | Set manual label to **uni** |
 | `Ctrl+Alt+G` | Set manual label to **gaming** |
 | `Ctrl+Alt+0` | Clear manual label |
@@ -88,7 +89,7 @@ Hotkeys are configured in [`config.yaml`](config.yaml). The `keyboard` library m
 
 #### Tray menu
 
-- Pick a label (work / uni / gaming) — stored separately from auto-inference
+- Pick a label (work / hobby / uni / gaming) — stored separately from auto-inference
 - **Clear manual label**
 - **Pause recording** — no samples written while paused
 - **Quit**
@@ -117,7 +118,7 @@ Re-running merge overwrites merged images and rebuilds metadata for processed da
 
 | Field | Meaning |
 |-------|---------|
-| `label` | Auto-inferred from rules (`work`, `uni`, `gaming`, `unknown`) — never replaced by manual |
+| `label` | Auto-inferred from rules (`work`, `hobby`, `uni`, `gaming`, `unknown`) — never replaced by manual |
 | `manual_label` | Present when a manual override was active at the matched sample time |
 | `manual_set_at` | When the manual label was last set |
 | `inactive` | No activity sample within `max_gap_seconds` of the image (neither PC was recording) |
@@ -139,7 +140,7 @@ Manual override state between runs is stored in `state.json` (gitignored).
 
 - `activity_interval_seconds` — how often to sample foreground context (default: 60)
 - `activity_dir` — root for activity logs (default: `./activity`)
-- `hostname` — optional override for log subdirectory name
+- `activity_dir` — root for activity logs (default: `./activity`); logs go to `activity/{hostname}/` using the machine's Windows computer name
 - `labels` — labels shown in the tray menu
 - `hotkeys` — global shortcut map
 - `merge.images_dir` — Pi images directory (synced locally)
@@ -154,6 +155,8 @@ Maps labels to foreground processes and window/tab title patterns. Matching is c
 When the foreground app is a browser (Chrome, Edge, Firefox, etc.), the active tab title is extracted from the window title and matched against the `titles` lists.
 
 Labels are checked in the order listed under `priority`. The first match wins; otherwise the `default` label is used (`unknown`).
+
+On hosts listed under `hosts` → `hostnames` in [`rules.yaml`](rules.yaml), programming apps (Cursor, VS Code, GitHub) infer as **hobby** instead of **work**. Add your desktop's Windows computer name there — it is the same `hostname` value written to activity metadata automatically.
 
 ## Tuning rules
 

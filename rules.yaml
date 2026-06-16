@@ -35,3 +35,33 @@ labels:
       - Counter-Strike
       - Elden Ring
       - Twitch
+  hobby:
+    processes: []
+    titles: []
+
+# Host-specific overrides. hostnames must match the machine name logged in
+# activity metadata (Windows computer name, sanitized). Run record_activity.py
+# once and copy the hostname from the startup log or activity JSONL.
+hosts:
+  - hostnames:
+      - DESKTOP-HNFI54H
+    priority:
+      - hobby
+      - work
+      - uni
+      - gaming
+    labels:
+      hobby:
+        processes:
+          - Code.exe
+          - Cursor.exe
+        titles:
+          - GitHub
+      work:
+        processes:
+          - slack.exe
+          - Teams.exe
+          - OUTLOOK.EXE
+        titles:
+          - Jira
+          - Outlook

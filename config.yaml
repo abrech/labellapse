@@ -1,15 +1,16 @@
 activity_interval_seconds: 60
 activity_dir: "./activity"
-# hostname: "desktop"  # optional; defaults to socket.gethostname()
 
 labels:
   - work
+  - hobby
   - uni
   - gaming
   - unknown
 
 hotkeys:
   work: "ctrl+alt+w"
+  hobby: "ctrl+alt+h"
   uni: "ctrl+alt+u"
   gaming: "ctrl+alt+g"
   clear: "ctrl+alt+0"
