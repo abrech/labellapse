@@ -35,6 +35,8 @@ class WebcamCapture:
     def _configure_capture(self) -> None:
         if self._cap is None or sys.platform == "win32":
             return
+        # MJPEG reduces USB bandwidth; many Pi webcams behave better with it.
+        self._cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
         # Keep one frame in the buffer; helps avoid stale reads on USB webcams.
         self._cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
@@ -56,12 +58,13 @@ class WebcamCapture:
 
             if attempt + 1 < attempts:
                 logger.warning(
-                    "Camera read failed (attempt %d/%d), retrying",
+                    "Camera read failed (attempt %d/%d), reopening camera",
                     attempt + 1,
                     attempts,
                 )
-                time.sleep(0.5)
-                self._discard_stale_frames()
+                self.close()
+                time.sleep(1.0)
+                self.open()
 
         raise last_error or RuntimeError("Failed to read frame from camera")
 
@@ -73,19 +76,16 @@ class WebcamCapture:
             for _ in range(5):
                 self._cap.grab()
         else:
-            # Warm-up read; USB cameras on Pi often need a moment after open.
-            self._cap.read()
+            # Warm-up reads; USB cameras on Pi often need a moment after open.
+            time.sleep(0.5)
+            for _ in range(2):
+                self._cap.read()
+                time.sleep(0.2)
 
         ok, frame = self._cap.read()
         if not ok or frame is None:
             return None
         return frame
-
-    def _discard_stale_frames(self) -> None:
-        if self._cap is None:
-            return
-        for _ in range(3):
-            self._cap.grab()
 
     def save_jpeg(self, frame: np.ndarray, path: Path, quality: int = 85) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
