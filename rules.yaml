@@ -1,16 +1,22 @@
-default: unknown
+default: work
 
 # First matching label wins (top to bottom).
 priority:
+  - programming
   - work
   - uni
   - gaming
 
 labels:
-  work:
+  programming:
     processes:
       - Code.exe
       - Cursor.exe
+    titles:
+      - Home Assistant
+      - homeassistant.local
+  work:
+    processes:
       - slack.exe
       - Teams.exe
       - OUTLOOK.EXE
@@ -19,7 +25,8 @@ labels:
       - Jira
       - Outlook
   uni:
-    processes: []
+    processes:
+      - anki.exe
     titles:
       - Canvas
       - Moodle
@@ -27,6 +34,8 @@ labels:
       - Zoom
       - edX
       - Blackboard
+      - Deep Learning
+      - Universität
   gaming:
     processes:
       - steam.exe
@@ -35,9 +44,6 @@ labels:
       - Counter-Strike
       - Elden Ring
       - Twitch
-  hobby:
-    processes: []
-    titles: []
 
 # Host-specific overrides. hostnames must match the machine name logged in
 # activity metadata (Windows computer name, sanitized). Run record_activity.py
@@ -45,20 +51,13 @@ labels:
 hosts:
   - hostnames:
       - DESKTOP-HNFI54H
+    default: active
     priority:
-      - hobby
+      - programming
       - work
       - uni
       - gaming
     labels:
-      hobby:
-        processes:
-          - Code.exe
-          - Cursor.exe
-        titles:
-          - GitHub
-          - homeassistant.local
-          - Home Assistant
       work:
         processes:
           - slack.exe

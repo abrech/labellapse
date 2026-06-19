@@ -19,6 +19,7 @@ from labeling import (
     get_manual_set_at,
     infer_label,
     load_rules,
+    maybe_clear_inactive_on_context_change,
 )
 from tray import AppController, start_tray, stop_tray
 
@@ -54,6 +55,7 @@ def _sample_once(
     hostname: str,
 ) -> None:
     ctx = get_foreground_context()
+    maybe_clear_inactive_on_context_change(BASE_DIR, ctx)
     label = infer_label(ctx, rules, hostname=hostname)
 
     now = datetime.now()

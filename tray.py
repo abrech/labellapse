@@ -11,9 +11,18 @@ import keyboard
 from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem
 
-from labeling import clear_manual_label, get_manual_label, set_manual_label
+from context import get_foreground_context
+from labeling import (
+    INACTIVE_MANUAL_LABEL,
+    clear_manual_label,
+    get_manual_label,
+    set_inactive_label,
+    set_manual_label,
+)
 
 logger = logging.getLogger(__name__)
+
+TRAY_LABELS_EXCLUDED = frozenset({"unknown", INACTIVE_MANUAL_LABEL})
 
 
 class AppController:
@@ -63,6 +72,13 @@ def _on_label_selected(base_dir: Path, label: str, icon: Icon) -> None:
     icon.update_menu()
 
 
+def _on_inactive_selected(base_dir: Path, icon: Icon) -> None:
+    ctx = get_foreground_context()
+    set_inactive_label(base_dir, ctx)
+    logger.info("Manual label set to inactive (process=%s)", ctx.process or "unknown")
+    icon.update_menu()
+
+
 def _on_clear_label(base_dir: Path, icon: Icon) -> None:
     clear_manual_label(base_dir)
     logger.info("Manual label cleared")
@@ -98,6 +114,21 @@ def _make_label_menu_item(
     return MenuItem(text, action)
 
 
+def _make_inactive_menu_item(
+    base_dir: Path,
+    icon_holder: dict[str, Icon | None],
+) -> MenuItem:
+    def text(_icon: Icon) -> str:
+        if get_manual_label(base_dir) == INACTIVE_MANUAL_LABEL:
+            return "Inactive (away from desk) (active)"
+        return "Inactive (away from desk)"
+
+    def action(_icon: Icon, _item: MenuItem) -> None:
+        _on_inactive_selected(base_dir, icon_holder["icon"])
+
+    return MenuItem(text, action)
+
+
 def _build_menu(
     base_dir: Path,
     labels: list[str],
@@ -107,11 +138,12 @@ def _build_menu(
     label_items = [
         _make_label_menu_item(base_dir, label, icon_holder)
         for label in labels
-        if label != "unknown"
+        if label not in TRAY_LABELS_EXCLUDED
     ]
 
     return Menu(
         *label_items,
+        _make_inactive_menu_item(base_dir, icon_holder),
         Menu.SEPARATOR,
         MenuItem(
             "Clear manual label",
@@ -131,7 +163,7 @@ def _register_hotkeys(
     labels: list[str],
     on_menu_update: Callable[[], None],
 ) -> None:
-    valid_labels = {label for label in labels if label != "unknown"}
+    valid_labels = {label for label in labels if label not in TRAY_LABELS_EXCLUDED}
 
     for label, combo in hotkeys.items():
         if label == "clear":
@@ -140,6 +172,14 @@ def _register_hotkeys(
                 lambda: (_clear_and_update(base_dir, on_menu_update)),
             )
             logger.info("Registered hotkey %s -> clear manual label", combo)
+            continue
+
+        if label == INACTIVE_MANUAL_LABEL:
+            keyboard.add_hotkey(
+                combo,
+                lambda: (_set_inactive_and_update(base_dir, on_menu_update)),
+            )
+            logger.info("Registered hotkey %s -> inactive", combo)
             continue
 
         if label not in valid_labels:
@@ -156,6 +196,13 @@ def _register_hotkeys(
 def _set_and_update(base_dir: Path, label: str, on_menu_update: Callable[[], None]) -> None:
     set_manual_label(base_dir, label)
     logger.info("Manual label set to %s (hotkey)", label)
+    on_menu_update()
+
+
+def _set_inactive_and_update(base_dir: Path, on_menu_update: Callable[[], None]) -> None:
+    ctx = get_foreground_context()
+    set_inactive_label(base_dir, ctx)
+    logger.info("Manual label set to inactive (hotkey, process=%s)", ctx.process or "unknown")
     on_menu_update()
 
 

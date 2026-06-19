@@ -3,17 +3,21 @@ activity_dir: "./activity"
 
 labels:
   - work
-  - hobby
+  - programming
   - uni
   - gaming
+  - active
+  - inactive
   - roochen
   - unknown
 
 hotkeys:
   work: "ctrl+alt+w"
-  hobby: "ctrl+alt+h"
+  programming: "ctrl+alt+p"
   uni: "ctrl+alt+u"
   gaming: "ctrl+alt+g"
+  active: "ctrl+alt+h"
+  inactive: "ctrl+alt+i"
   roochen: "ctrl+alt+r"
   clear: "ctrl+alt+0"
 

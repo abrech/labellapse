@@ -12,6 +12,7 @@ import yaml
 from context import ForegroundContext
 
 STATE_FILENAME = "state.json"
+INACTIVE_MANUAL_LABEL = "inactive"
 
 
 def load_rules(path: Path) -> dict[str, Any]:
@@ -56,17 +57,57 @@ def get_manual_set_at(base_dir: Path) -> str | None:
     return None
 
 
+def _context_anchor(ctx: ForegroundContext) -> dict[str, str | None]:
+    return {
+        "process": ctx.process or "",
+        "window_title": ctx.window_title or "",
+        "tab_title": ctx.tab_title or "",
+    }
+
+
 def set_manual_label(base_dir: Path, label: str) -> None:
     state = load_state(base_dir)
     state["manual_label"] = label
     state["manual_set_at"] = datetime.now(timezone.utc).isoformat()
+    state.pop("inactive_anchor", None)
     save_state(base_dir, state)
+
+
+def set_inactive_label(base_dir: Path, ctx: ForegroundContext) -> None:
+    state = load_state(base_dir)
+    state["manual_label"] = INACTIVE_MANUAL_LABEL
+    state["manual_set_at"] = datetime.now(timezone.utc).isoformat()
+    state["inactive_anchor"] = _context_anchor(ctx)
+    save_state(base_dir, state)
+
+
+def maybe_clear_inactive_on_context_change(base_dir: Path, ctx: ForegroundContext) -> bool:
+    state = load_state(base_dir)
+    if state.get("manual_label") != INACTIVE_MANUAL_LABEL:
+        return False
+
+    anchor = state.get("inactive_anchor")
+    if not isinstance(anchor, dict):
+        clear_manual_label(base_dir)
+        return True
+
+    current = _context_anchor(ctx)
+    if (
+        current["process"] != anchor.get("process", "")
+        or current["window_title"] != anchor.get("window_title", "")
+        or current["tab_title"] != (anchor.get("tab_title") or "")
+    ):
+        clear_manual_label(base_dir)
+        return True
+
+    return False
 
 
 def clear_manual_label(base_dir: Path) -> None:
     state = load_state(base_dir)
     state.pop("manual_label", None)
     state.pop("manual_set_at", None)
+    state.pop("inactive_anchor", None)
     save_state(base_dir, state)
 
 
@@ -84,7 +125,7 @@ def infer_label(
     hostname: str | None = None,
 ) -> str:
     priority, labels = _rules_for_host(rules, hostname)
-    default: str = rules.get("default", "unknown")
+    default = _default_for_host(rules, hostname)
 
     process = ctx.process or ""
     title_candidates = [t for t in (ctx.tab_title, ctx.window_title) if t]
@@ -133,6 +174,16 @@ def _host_profile_for_hostname(
         if any(isinstance(name, str) and name.lower() == hostname_lower for name in names):
             return profile
     return None
+
+
+def _default_for_host(rules: dict[str, Any], hostname: str | None) -> str:
+    if hostname:
+        host_cfg = _host_profile_for_hostname(rules, hostname)
+        if host_cfg is not None:
+            host_default = host_cfg.get("default")
+            if isinstance(host_default, str) and host_default:
+                return host_default
+    return rules.get("default", "unknown")
 
 
 def _rules_for_host(
