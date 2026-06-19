@@ -79,13 +79,22 @@ def main() -> int:
         output_dir,
     )
 
+    consecutive_failures = 0
+
     try:
         while True:
             _sleep_until_next_interval(interval_seconds)
             try:
                 _capture_once(camera_index, config, output_dir, capture_retries)
+                consecutive_failures = 0
             except Exception:
+                consecutive_failures += 1
                 logger.exception("Capture failed, will retry next interval")
+                if consecutive_failures == 5:
+                    logger.error(
+                        "Five consecutive capture failures — check USB power/cable "
+                        "and consider disabling USB autosuspend for the webcam"
+                    )
 
     except KeyboardInterrupt:
         logger.info("Pi capture stopped")
